@@ -41,12 +41,15 @@ def get_rectangle(coords):
 
 def create_text(line):
     res = ""
+    line = unidecode.unidecode(line)
     for w in line:
         # w = re.sub(r"[^a-zA-Z0-9 ]+", '', w) #REMOVED special chars
         if w == " ":
             w = "<space>"
-        w = unidecode.unidecode(w)
+        
         res += "{} ".format(w.lower())
+    if ",," in res:
+        print(res)
     return res
 
 def crop_cv2(img, coords):
@@ -111,20 +114,21 @@ def start(args):
     all_text = ""
     txts = []
     # Image
-    threads = []
-    pool = multiprocessing.Pool(processes=n_hilos)              # start 4 worker processes
-    for fname in files:
-        # make_page_img(fname, path_out)
 
-        # t = Thread(target=make_page_img, args=(fname, path_out, ))
-        # threads.append(t)
-        # t.start()
-        result = pool.apply_async(make_page_img, [fname, path_out, dest_img, ext])
+    # threads = []
+    # pool = multiprocessing.Pool(processes=n_hilos)              # start 4 worker processes
+    # for fname in files:
+    #     # make_page_img(fname, path_out)
 
-    # for index, thread in enumerate(threads):
-    #     thread.join()
-    pool.close()
-    pool.join()
+    #     # t = Thread(target=make_page_img, args=(fname, path_out, ))
+    #     # threads.append(t)
+    #     # t.start()
+    #     result = pool.apply_async(make_page_img, [fname, path_out, dest_img, ext])
+
+    # # for index, thread in enumerate(threads):
+    # #     thread.join()
+    # pool.close()
+    # pool.join()
     """
     Print the file with trans
     """
