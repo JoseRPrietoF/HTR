@@ -4,16 +4,12 @@ from xml.dom import minidom
 import numpy as np, cv2
 from page import TablePAGE
 import unidecode
-
-from threading import Thread
-from random import random
-import threading
+# from threading import Thread
+# from random import random
+# import threading
 import time
 import multiprocessing
-
-progress = 0
-result = None
-result_available = threading.Event()
+import argparse
 
 def get_all_xml(path, ext="xml"):
     file_names = glob.glob(os.path.join(path, "*{}".format(ext)))
@@ -67,7 +63,7 @@ def crop_cv2(img, coords):
     crop2[:,:,-1] += crop[:,:,-1]
     return crop2
 
-def make_page_img(fname, path_out):
+def make_page_img(fname, path_out, dest_img, ext="jpg"):
     page = TablePAGE(im_path=fname)
     tls = page.get_textLines()
     basename = ".".join(fname.split(".")[:-1])
@@ -83,7 +79,7 @@ def make_page_img(fname, path_out):
         text = create_text(text)
         fname_line = os.path.join(path_out, "{}".format(id_line))
 
-def make_page_txt(fname, txts):
+def make_page_txt(fname, txts, path_out):
     page = TablePAGE(im_path=fname)
     tls = page.get_textLines()
     basename = ".".join(fname.split(".")[:-1])
@@ -93,65 +89,98 @@ def make_page_txt(fname, txts):
         txts.append([fname_line, text])
     return txts
 
-# Settings
-ext = "jpg"
-n_hilos = 4
-# Input
-path = "/data2/jose/corpus/tablas_DU/icdar_488/prueba/train"
+def start(args):
+    # Settings
+    ext = args.ext_images
+    n_hilos = args.threads
+    # Input
+    path = args.path_input
+    # Output
+    path_out = args.path_out
+    result_path = os.path.join(path_out, args.fname_trans)
+    result_path_map = os.path.join(path_out, args.fname_trans_map)
+    dest_img = os.path.join(path_out, args.dir_output_lines)
 
-# Output
-# path_out = "/data2/jose/corpus/tablas_DU/icdar_488/prueba/train_out"
-path_out = "prueba"
-result_path = "{}/tr_prueba.txt".format(path_out)
-result_path_map = "{}/syms".format(path_out)
-dest_img = "{}/lines".format(path_out)
+    ##############
+    """
+    Crop the lines
+    """
+    create_dir(path_out)
+    create_dir(dest_img)
+    files = get_all_xml(path)
+    all_text = ""
+    txts = []
+    # Image
+    threads = []
+    pool = multiprocessing.Pool(processes=n_hilos)              # start 4 worker processes
+    for fname in files:
+        # make_page_img(fname, path_out)
 
-##############
-"""
-Crop the lines
-"""
-create_dir(path_out)
-create_dir(dest_img)
-files = get_all_xml(path)
-all_text = ""
-txts = []
-# Image
-threads = []
-pool = multiprocessing.Pool(processes=n_hilos)              # start 4 worker processes
-for fname in files[:10]:
-    # make_page_img(fname, path_out)
+        # t = Thread(target=make_page_img, args=(fname, path_out, ))
+        # threads.append(t)
+        # t.start()
+        result = pool.apply_async(make_page_img, [fname, path_out, dest_img, ext])
 
-    # t = Thread(target=make_page_img, args=(fname, path_out, ))
-    # threads.append(t)
-    # t.start()
-    result = pool.apply_async(make_page_img, [fname, path_out,])
-
-# for index, thread in enumerate(threads):
-#     thread.join()
-pool.close()
-pool.join()
-"""
-Print the file with trans
-"""
-# Text
-for fname in files:
-    make_page_txt(fname, txts)
+    # for index, thread in enumerate(threads):
+    #     thread.join()
+    pool.close()
+    pool.join()
+    """
+    Print the file with trans
+    """
+    # Text
+    for fname in files:
+        make_page_txt(fname, txts, path_out)
 
 
-f_Result = open(result_path, "w")
-for fname_line ,text in txts[:10]:
-    f_Result.write("{} {}\n".format(fname_line, text))
-    all_text += "{} ".format(text)
-f_Result.close()
+    f_Result = open(result_path, "w")
+    for fname_line ,text in txts:
+        f_Result.write("{} {}\n".format(fname_line, text))
+        all_text += "{} ".format(text)
+    f_Result.close()
 
-"""
-Print the symbols
-"""
-chars = all_text.lower().split()
-chars = list(set(chars))
-chars.insert(0, "<ctc>")
+    """
+    Print the symbols
+    """
+    chars = all_text.lower().split()
+    chars = list(set(chars))
+    chars.insert(0, "<ctc>")
 
-f_Result = open(result_path_map, "w")
-for i, c in enumerate(chars):
-    f_Result.write("{} {}\n".format(c,i))
-f_Result.close()
+    f_Result = open(result_path_map, "w")
+    for i, c in enumerate(chars):
+        f_Result.write("{} {}\n".format(c,i))
+    f_Result.close()
+
+
+if __name__ == "__main__":
+    """
+    # Settings
+    ext = "jpg"
+    n_hilos = 4
+    # Input
+    path = "/data2/jose/corpus/tablas_DU/icdar_488/prueba/train"
+
+    # Output
+    # path_out = "/data2/jose/corpus/tablas_DU/icdar_488/prueba/train_out"
+    path_out = "prueba"
+    result_path = "{}/tr_prueba.txt".format(path_out)
+    result_path_map = "{}/syms".format(path_out)
+    dest_img = "{}/lines".format(path_out)
+    """
+    parser = argparse.ArgumentParser(description='Process lines.')
+    parser.add_argument('--threads', metavar='threads', type=int,
+                    help='Number of processes to launch', default=4)
+    parser.add_argument('--ext_images', metavar='ext_images', type=str,
+                    help='Extension of the images. jpg, png, etc', default="jpg")
+    parser.add_argument('--path_input', metavar='path_input', type=str,
+                    help='Input path where are the xmls and images')
+    parser.add_argument('--path_out', metavar='path_out', type=str,
+                    help='Output path to store the results. The dir will be created if doesnt exist')
+    parser.add_argument('--fname_trans', metavar='fname_trans', type=str,
+                    help='Name of the output file to store the trans. Will be saved in path_out', default="table.txt")
+    parser.add_argument('--fname_trans_map', metavar='fname_trans_map', type=str,
+                    help='Name of the output file to store the map of chars. Will be saved in path_out', default="syms")
+    parser.add_argument('--dir_output_lines', metavar='dir_output_lines', type=str,
+                    help='Name of the output dir to store the lines. The dir Will be created in path_out', default="lines")
+    args = parser.parse_args()
+    start(args)
