@@ -115,20 +115,20 @@ def start(args):
     txts = []
     # Image
 
-    # threads = []
-    # pool = multiprocessing.Pool(processes=n_hilos)              # start 4 worker processes
-    # for fname in files:
-    #     # make_page_img(fname, path_out)
+    threads = []
+    pool = multiprocessing.Pool(processes=n_hilos)              # start 4 worker processes
+    for fname in files:
+        # make_page_img(fname, path_out)
 
-    #     # t = Thread(target=make_page_img, args=(fname, path_out, ))
-    #     # threads.append(t)
-    #     # t.start()
-    #     result = pool.apply_async(make_page_img, [fname, path_out, dest_img, ext])
+        # t = Thread(target=make_page_img, args=(fname, path_out, ))
+        # threads.append(t)
+        # t.start()
+        result = pool.apply_async(make_page_img, [fname, path_out, dest_img, ext])
 
-    # # for index, thread in enumerate(threads):
-    # #     thread.join()
-    # pool.close()
-    # pool.join()
+    # for index, thread in enumerate(threads):
+    #     thread.join()
+    pool.close()
+    pool.join()
     """
     Print the file with trans
     """
