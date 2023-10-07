@@ -1,80 +1,42 @@
-# time python3.6 prepare/make_lines.py --threads 4 --ext_images jpg \
-# --path_input /data2/jose/corpus/tablas_DU/icdar_488/fold_1/train_dev_data/tr_data \
-# --path_out /data2/jose/corpus/tablas_DU/icdar_488/fold_1/train_dev_data/ \
-# --fname_trans table_tr.txt \
-# --fname_trans_map syms_tr \
-# --dir_output_lines lines_tr \
-# --min_size 20 30 \
-# --rotate True --angle_rot 90 --ratio_rotate 0.5 \
-# --do_img True
 
-# time python3.6 prepare/make_lines.py --threads 4 --ext_images jpg \
-# --path_input /data2/jose/corpus/tablas_DU/icdar_488/fold_1/train_dev_data/dev_data \
-# --path_out /data2/jose/corpus/tablas_DU/icdar_488/fold_1/train_dev_data/ \
-# --fname_trans table_dev.txt \
-# --fname_trans_map syms_dev \
-# --dir_output_lines lines_dev \
-# --min_size 20 30 \
-# --rotate True --angle_rot 90 --ratio_rotate 0.5 \
-# --do_img True
-
-## Fold 2
-time python3.6 prepare/make_lines.py --threads 4 --ext_images jpg \
---path_input /data2/jose/corpus/tablas_DU/icdar_488/fold_2/train_dev_data/tr_data \
---path_out /data2/jose/corpus/tablas_DU/icdar_488/fold_2/train_dev_data/ \
---fname_trans table_tr.txt \
+path=/data2/jose/corpus/tablas_DU/icdar_488/myfold_data/train_dev_data
+# path=/data2/jose/corpus/tablas_DU/icdar19_headers/page
+# path=/data/HisClima/HisClimaProd/DLA/HisClima_0/HTR
+# path_out=/data/HisClima/HisClimaProd/DLA/HisClima_0/HTR/lines/
+path_out=/data2/jose/corpus/tablas_DU/icdar_488/myfold_data/train_dev_data
+time python prepare/make_lines.py --threads 4 --ext_images jpg \
+--path_input ${path}/lines/train \
+--path_out ${path_out}/tr \
+--fname_table table_tr.txt \
 --fname_trans_map syms_tr \
 --dir_output_lines lines_tr \
---min_size 20 30 \
---rotate True --angle_rot 90 --ratio_rotate 0.5 \
+--fname_trans trans_tr.txt \
+--min_size 5 5 \
+--rotate True --angle_rot -90 \
 --do_img True
 
-time python3.6 prepare/make_lines.py --threads 4 --ext_images jpg \
---path_input /data2/jose/corpus/tablas_DU/icdar_488/fold_2/train_dev_data/dev_data \
---path_out /data2/jose/corpus/tablas_DU/icdar_488/fold_2/train_dev_data/ \
---fname_trans table_dev.txt \
+time python prepare/make_lines.py --threads 4 --ext_images jpg \
+--path_input ${path}/val \
+--path_out ${path_out}/lines/val \
+--fname_table table_val.txt \
 --fname_trans_map syms_dev \
---dir_output_lines lines_dev \
---min_size 20 30 \
---rotate True --angle_rot 90 --ratio_rotate 0.5 \
---do_img True
-## Fold 3
-time python3.6 prepare/make_lines.py --threads 4 --ext_images jpg \
---path_input /data2/jose/corpus/tablas_DU/icdar_488/fold_3/train_dev_data/tr_data \
---path_out /data2/jose/corpus/tablas_DU/icdar_488/fold_3/train_dev_data/ \
---fname_trans table_tr.txt \
---fname_trans_map syms_tr \
---dir_output_lines lines_tr \
---min_size 20 30 \
---rotate True --angle_rot 90 --ratio_rotate 0.5 \
+--fname_trans trans_val.txt \
+--dir_output_lines lines_val \
+--min_size 5 5 \
+--rotate True --angle_rot -90 \
 --do_img True
 
-time python3.6 prepare/make_lines.py --threads 4 --ext_images jpg \
---path_input /data2/jose/corpus/tablas_DU/icdar_488/fold_3/train_dev_data/dev_data \
---path_out /data2/jose/corpus/tablas_DU/icdar_488/fold_3/train_dev_data/ \
---fname_trans table_dev.txt \
+# rm ${path}/syms_dev
+
+time python prepare/make_lines.py --threads 4 --ext_images jpg \
+--path_input ${path}/test \
+--path_out ${path_out}/lines/te \
+--fname_table table_test.txt \
 --fname_trans_map syms_dev \
---dir_output_lines lines_dev \
---min_size 20 30 \
---rotate True --angle_rot 90 --ratio_rotate 0.5 \
---do_img True
-## Fold 4
-time python3.6 prepare/make_lines.py --threads 4 --ext_images jpg \
---path_input /data2/jose/corpus/tablas_DU/icdar_488/fold_4/train_dev_data/tr_data \
---path_out /data2/jose/corpus/tablas_DU/icdar_488/fold_4/train_dev_data/ \
---fname_trans table_tr.txt \
---fname_trans_map syms_tr \
---dir_output_lines lines_tr \
---min_size 20 30 \
---rotate True --angle_rot 90 --ratio_rotate 0.5 \
+--fname_trans trans_test.txt \
+--dir_output_lines lines_test \
+--min_size 5 5 \
+--rotate True --angle_rot -90 \
 --do_img True
 
-time python3.6 prepare/make_lines.py --threads 4 --ext_images jpg \
---path_input /data2/jose/corpus/tablas_DU/icdar_488/fold_4/train_dev_data/dev_data \
---path_out /data2/jose/corpus/tablas_DU/icdar_488/fold_4/train_dev_data/ \
---fname_trans table_dev.txt \
---fname_trans_map syms_dev \
---dir_output_lines lines_dev \
---min_size 20 30 \
---rotate True --angle_rot 90 --ratio_rotate 0.5 \
---do_img True
+rm ${path}/syms_dev

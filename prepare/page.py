@@ -20,6 +20,8 @@ class TablePAGE():
         self.search_on = search_on
 
         self.parse()
+        self.height = self.get_height()
+        self.width = self.get_width()
 
 
 
@@ -46,6 +48,7 @@ class TablePAGE():
                     words = i.firstChild.nodeValue
                 except:
                     words = ""
+                    print(words)
                 return words
 
         return None
@@ -165,11 +168,7 @@ class TablePAGE():
                 coords_to_append.append((int(x), int(y)))
 
             text_lines.append(coords_to_append)
-
-
         return text_lines
-
-
 
     def get_textLines(self, ):
         """
@@ -180,13 +179,67 @@ class TablePAGE():
         text_lines = []
         for region in self.xmldoc.getElementsByTagName("TextLine"):
             id_line = region.attributes["id"].value
+            # if "facs_73" in id_line:
+            #     print(id_line)
             coords = self.get_coords(region)
+            bl = self.get_baseline(region)
             text = self.get_text(region)
-
-            text_lines.append((coords, text, id_line))
-
-
+            text_lines.append((coords, text, id_line, bl))
         return text_lines
+
+    def get_textLines_twolines(self, ):
+        """
+        A partir de un elemento del DOM devuelve, para cada textLine, sus coordenadas y su contenido
+        :param dom_element:
+        :return: [(coords, words)]
+        """
+        text_lines = []
+        for region in self.xmldoc.getElementsByTagName("TextLine"):
+            id_line = region.attributes["id"].value
+            # if "facs_73" in id_line:
+            #     print(id_line)
+            coords = self.get_coords(region)
+            bl = self.get_baseline(region)
+            text = self.get_text(region)
+            id_reg = self.get_daddy(region)
+            id_reg = id_reg.attributes["id"].value
+            text_lines.append((coords, text, id_line, bl, id_reg))
+        return text_lines
+    
+    def get_order(self, coords, name="TextRegion"):
+        for i, region in enumerate(self.xmldoc.getElementsByTagName(name)):
+            coords2 = self.get_coords(region)
+            if coords == coords2:
+                return i
+
+    def get_textLinesActs(self, SEM_MATCHING_TOKENS:dict):
+        """
+        A partir de un elemento del DOM devuelve, para cada textLine, sus coordenadas y su contenido
+        :param dom_element:
+        :return: [(coords, words)]
+        """
+        text_lines = []
+        for region in self.xmldoc.getElementsByTagName("TextLine"):
+            id_line = region.attributes["id"].value
+            textregion = self.get_daddy(region, "TextRegion")
+            bl = self.get_baseline(region)
+            # id_line_textregion = textregion.attributes["id"].value
+            type_act = textregion.attributes["custom"].value.split("structure {type:")[-1].split(";")[0].lower()
+            coords = self.get_coords(region)
+            id_line_textregion = self.get_order(self.get_coords(textregion), name="TextRegion")
+            text = self.get_text(region)
+            id_reg = textregion.attributes["id"].value
+            text_lines.append((coords, text, id_line, type_act, id_line_textregion, bl, id_reg))
+        text_lines_res = []
+        last_id_line_textregion = set()
+        for i, (coords, text, id_line, type_act, id_line_textregion, bl, id_reg) in enumerate(text_lines):
+            if id_line_textregion not in last_id_line_textregion:
+                text = SEM_MATCHING_TOKENS[type_act][0] + text
+                last_id_line_textregion.add(id_line_textregion)
+            if i == len(text_lines)-1 or (i+1 < len(text_lines) and text_lines[i+1][-1] != id_line_textregion):
+                text = text + SEM_MATCHING_TOKENS[type_act][1]
+            text_lines_res.append((coords, text, id_line, bl, id_reg))
+        return text_lines_res
 
     def get_textLinesWithObject(self, ):
         """
@@ -331,9 +384,40 @@ class TablePAGE():
         coords = coords_element.attributes["points"].value
         coords = coords.split()
         coords_to_append = []
+        # print("######", coords, self.height, self.width)
         for c in coords:
             x, y = c.split(",")
-            coords_to_append.append((int(x), int(y)))
+            x,y = int(x), int(y)
+            x = max(min(self.width, x), 0)
+            y = max(min(self.height, y), 0)
+            coords_to_append.append((x,y))
+        return coords_to_append
+    
+    def get_baseline(self, dom_element):
+        """
+        Devuelve las coordenadas de un elemento. Coords
+        :param dom_element:
+        :return: ((pos), (pos2), (pos3), (pos4)) es un poligono. Sentido agujas del reloj
+        """
+        coords_element = None
+        for i in dom_element.childNodes:
+            if i.nodeName == 'Baseline':
+                coords_element = i
+                break
+        if coords_element is None:
+            print("No se ha encontrado baseline en una región")
+            return None
+
+        coords = coords_element.attributes["points"].value
+        coords = coords.split()
+        coords_to_append = []
+        # print("######", coords, self.height, self.width)
+        for c in coords:
+            x, y = c.split(",")
+            x,y = int(x), int(y)
+            x = max(min(self.width, x), 0)
+            y = max(min(self.height, y), 0)
+            coords_to_append.append((x,y))
         return coords_to_append
 
     def parse(self):

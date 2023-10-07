@@ -1,0 +1,27 @@
+
+conda create -n Eval-E2EHTR python=3.6
+conda activate Eval-E2EHTR
+
+pip install numpy
+pip install openfst-python
+pip install scipy
+pip install matplotlib
+
+pip install pybind11
+
+# Download and modify fastwer:
+cd fastwer
+python setup.py clean
+python setup.py bdist_wheel
+#python setup.py install
+cd ..
+pip install --force-reinstall dist/fastwer-0.1.3-cp36-cp36m-linux_x86_64.whl
+
+# To evaluate the IAMDB reference-predicted text samples: 
+EvalE2EHTR.py -H -v 1 IAMDB/ > iamdb.out
+
+# To remove conda environment
+#conda env remove -n Eval-E2EHTR
+
+
+
